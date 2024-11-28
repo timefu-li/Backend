@@ -27,10 +27,15 @@ final class Task: Model, Content {
 struct InitTask: AsyncMigration {
     // Prepares the database for storing Task models.
     func prepare(on database: Database) async throws {
+        // Setup tasks table
         try await database.schema("tasks")
             .id()
             .field("name", .string)
             .create()
+
+        // Seed Database
+        let test: Task = Task(name: "Test Task")
+        try await test.create(on: database)
     }
 
     // Optionally reverts the changes made in the prepare method.
