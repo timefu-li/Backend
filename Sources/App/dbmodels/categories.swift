@@ -22,6 +22,10 @@ final class Category: Model, Content {
     @Field(key: "colour")
     var colour: String
 
+    // Reference to all the tasks belonging to this category.
+    @Children(for: \.$category)
+    var tasks: [Task]
+
     // Creates a new, empty Task
     init() { }
 

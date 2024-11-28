@@ -22,16 +22,25 @@ final class CompletedTask: Model, Content {
     @Field(key: "completed")
     var completed: Date
 
+    // Reference to the task this Completed Task belongs to
+    @Parent(key: "task_id")
+    var task: Task
+
     // Creates a new, empty Task
     init() { }
 
     // Creates a new Task with all properties set.
-    init(id: UUID? = nil, name: String, started: Date, completed: Date) {
+    init(id: UUID? = nil, name: String, started: Date, completed: Date, taskID: UUID) {
         self.id = id
         self.completed = completed
         self.started = started
         self.name = name
+        self.$task.id = taskID
     }
+}
+
+enum InitCompletedTaskSeedingError: Error {
+    case categoryMissing
 }
 
 struct InitCompletedTask: AsyncMigration {
@@ -43,11 +52,16 @@ struct InitCompletedTask: AsyncMigration {
             .field("name", .string)
             .field("started", .date)
             .field("completed", .date)
+            .field("task_id", .uuid, .references("tasks", "id"))
             .create()
 
         // Seed Database
-        let seed: CompletedTask = CompletedTask(name: "Completed Test Task", started: Date(), completed: Date() + TimeInterval(60*60*24))
-        try await seed.create(on: database)
+        if let task_id: UUID = try await Task.query(on: database).first()?.id {
+            let seed: CompletedTask = CompletedTask(name: "Completed Test Task", started: Date(), completed: Date() + TimeInterval(60*60*24), taskID: task_id)
+            try await seed.create(on: database)
+        } else {
+            throw InitCompletedTaskSeedingError.categoryMissing
+        }
     }
 
     // Optionally reverts the changes made in the prepare method.
