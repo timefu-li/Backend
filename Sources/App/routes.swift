@@ -1,4 +1,5 @@
 import Vapor
+import Fluent
 
 func routes(_ app: Application) throws {
 
@@ -8,6 +9,17 @@ func routes(_ app: Application) throws {
         }
 
         return tasks
+    }
+
+    app.get("tasks", ":id") { (req: Request) async throws -> Task in
+        guard let idparam: UUID = try? req.parameters.get("id") else {
+            throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
+        }
+        guard let task: Task = try? await Task.query(on: req.db).filter(\.$id == idparam).first() else {
+            throw Abort(.custom(code: 200, reasonPhrase: "Requested task not found"))
+        }
+
+        return task
     }
 
     app.post("tasks") { (req: Request) async throws -> Task in
