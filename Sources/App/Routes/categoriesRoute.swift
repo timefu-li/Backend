@@ -29,10 +29,17 @@ func initCategoriesRoute(_ app: Application) throws {
             }
         }
 
-        guard let categoriesQueryBuilder: QueryBuilder<Category> = try? Category.query(on: req.db) else {
+        guard let categoriesQueryBuilder: QueryBuilder<Category> = try? Category
+                                                                        .query(on: req.db)
+        else {
             throw Abort(.custom(code: 500, reasonPhrase: "Failed to query categories"))
         }
-        guard let categories: [Category] = preload ? try? await categoriesQueryBuilder.with(\.$tasks).all() : try? await categoriesQueryBuilder.all() else {
+        guard let categories: [Category] = preload ? try? await categoriesQueryBuilder
+                                                                        .with(\.$tasks)
+                                                                        .all()
+                                                    : try? await categoriesQueryBuilder
+                                                                        .all() 
+        else {
             throw Abort(.custom(code: 200, reasonPhrase: "No categories found"))
         }
 
@@ -52,10 +59,19 @@ func initCategoriesRoute(_ app: Application) throws {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
 
-        guard let categoriesQueryBuilder: QueryBuilder<Category> = try? Category.query(on: req.db) else {
+        guard let categoriesQueryBuilder: QueryBuilder<Category> = try? Category
+                                                                        .query(on: req.db) 
+        else {
             throw Abort(.custom(code: 500, reasonPhrase: "Failed to query categories"))
         }
-        guard let category: Category = preload ? try? await categoriesQueryBuilder.with(\.$tasks).filter(\.$id == idparam).first() : try? await categoriesQueryBuilder.filter(\.$id == idparam).first() else {
+        guard let category: Category = preload ? try? await categoriesQueryBuilder
+                                                            .with(\.$tasks)
+                                                            .filter(\.$id == idparam)
+                                                            .first()
+                                                : try? await categoriesQueryBuilder
+                                                            .filter(\.$id == idparam)
+                                                            .first() 
+        else {
             throw Abort(.custom(code: 200, reasonPhrase: "No categories found"))
         }
 
@@ -72,7 +88,11 @@ func initCategoriesRoute(_ app: Application) throws {
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
-        guard let category: Category = try? await Category.query(on: req.db).filter(\.$id == idparam).first() else {
+        guard let category: Category = try? await Category
+                                                    .query(on: req.db)
+                                                    .filter(\.$id == idparam)
+                                                    .first() 
+        else {
             throw Abort(.custom(code: 200, reasonPhrase: "Requested category not found"))
         }
 
@@ -102,7 +122,10 @@ func initCategoriesRoute(_ app: Application) throws {
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
-        guard let category: Category = try? await Category.query(on: req.db).filter(\.$id == idparam).first() else {
+        guard let category: Category = try? await Category
+                                                    .query(on: req.db)
+                                                    .filter(\.$id == idparam)
+                                                    .first() else {
             throw Abort(.custom(code: 200, reasonPhrase: "Requested category not found"))
         }
         guard let categorydeleted: () = try? await category.delete(on: req.db) else {
