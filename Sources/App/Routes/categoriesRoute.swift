@@ -82,7 +82,7 @@ func initCategoriesRoute(_ app: Application) throws {
     struct categorypatchquery: Content {
         let name: String?
         let emoji: String?
-        let colour: String?
+        let colour: ColourRGB?
     }
     categoriesRoute.patch(":id", use: { (req: Request) async throws -> Category in
         guard let idparam: UUID = try? req.parameters.get("id") else {

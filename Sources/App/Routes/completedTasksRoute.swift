@@ -45,7 +45,7 @@ func initCompletedTasksRoute(_ app: Application) throws {
             throw Abort(.custom(code: 200, reasonPhrase: "Completed task not found"))
         }
 
-        return tasks
+        return tasks.reversed()
     })
 
     // Read Single

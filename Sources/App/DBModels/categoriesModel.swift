@@ -2,6 +2,12 @@ import Vapor
 import Fluent
 import FluentSQLiteDriver
 
+struct ColourRGB: Encodable, Decodable {
+    let red: uint8;
+    let green: uint8;
+    let blue: uint8;
+}
+
 final class Category: Model, Content {
     // Name of the table or collection.
     static let schema = "categories"
@@ -20,7 +26,7 @@ final class Category: Model, Content {
 
     // The Task's colour.
     @Field(key: "colour")
-    var colour: String
+    var colour: ColourRGB
 
     // Reference to all the tasks belonging to this category.
     @Children(for: \.$category)
@@ -30,7 +36,7 @@ final class Category: Model, Content {
     init() { }
 
     // Creates a new Task with all properties set.
-    init(id: UUID? = nil, name: String, emoji: String, colour: String) {
+    init(id: UUID? = nil, name: String, emoji: String, colour: ColourRGB) {
         self.id = id
         self.name = name
         self.emoji = emoji
@@ -46,12 +52,12 @@ struct InitCategory: AsyncMigration {
             .id()
             .field("name", .string)
             .field("emoji", .string)
-            .field("colour", .string)
+            .field("colour", .dictionary(of: .uint8))
             .create()
 
         // Seed Database
         // As an assumption, "No Category" will always be the first ever category in the schema
-        let seed: Category = Category(name: "No Category", emoji: "placeholder", colour: "grey")
+        let seed: Category = Category(name: "No Category", emoji: "placeholder", colour: ColourRGB(red: 128, green: 128, blue: 128))
         try await seed.create(on: database)
     }
 
