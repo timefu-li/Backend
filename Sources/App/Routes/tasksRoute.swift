@@ -6,7 +6,7 @@ func initTasksRoutes(_ app: Application) throws {
     let tasksRoute = app.grouped("tasks")
 
     // Create
-    tasksRoute.post() { (req: Request) async throws -> Task in
+    tasksRoute.post(use: { (req: Request) async throws -> Task in
         guard let taskmodel: Task = try? req.content.decode(Task.self) else {
             throw Abort(.custom(code: 422, reasonPhrase: "Request body sent by user is invalid"))
         }
@@ -15,13 +15,13 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         return taskmodel
-    }
+    })
 
     // Read
     struct taskgetquery: Content {
         let preload: Bool? // Preload category information linked to this task
     }
-    tasksRoute.get() { (req: Request) async throws -> [Task] in
+    tasksRoute.get(use: { (req: Request) async throws -> [Task] in
         var preload: Bool = true
         if let query: taskgetquery = try? req.query.decode(taskgetquery.self) {
             if let querypreloadunwrapped = query.preload {
@@ -44,10 +44,10 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         return tasks
-    }
+    })
 
     // Read Single
-    tasksRoute.get(":id") { (req: Request) async throws -> Task in
+    tasksRoute.get(":id", use: { (req: Request) async throws -> Task in
         var preload: Bool = true
         if let query: taskgetquery = try? req.query.decode(taskgetquery.self) {
             if let querypreloadunwrapped = query.preload {
@@ -76,14 +76,14 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         return task
-    }
+    })
 
     // Update
     struct taskpatchquery: Content {
         let name: String?
         let category: UUID?
     }
-    tasksRoute.patch(":id") { (req: Request) async throws -> Task in
+    tasksRoute.patch(":id", use: { (req: Request) async throws -> Task in
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
@@ -111,10 +111,10 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         return task
-    }
+    })
 
     // Delete
-    tasksRoute.delete(":id") { (req: Request) async throws -> Task in
+    tasksRoute.delete(":id", use: { (req: Request) async throws -> Task in
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
@@ -130,6 +130,6 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         return task
-    }
+    })
 
 }

@@ -1,55 +1,57 @@
 import Vapor
 import Fluent
 
-func initTasksRoutes(_ app: Application) throws {
+func initCompletedTasksRoute(_ app: Application) throws {
 
-    let tasksRoute = app.grouped("tasks")
+    let completedTasksRoute = app.grouped("completedtasks")
 
     // Create
-    tasksRoute.post() { (req: Request) async throws -> Task in
-        guard let taskmodel: Task = try? req.content.decode(Task.self) else {
+    completedTasksRoute.post(use: { (req: Request) async throws -> CompletedTask in
+        guard let completedtaskmodel: CompletedTask = try? req.content.decode(CompletedTask.self) else {
             throw Abort(.custom(code: 422, reasonPhrase: "Request body sent by user is invalid"))
         }
-        guard let taskcreated: () = try? await taskmodel.create(on: req.db) else {
+        guard let completedtaskcreated: () = try? await completedtaskmodel.create(on: req.db) else {
             throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to add new task to database"))
         }
 
-        return taskmodel
-    }
+        return completedtaskmodel
+    })
 
     // Read
-    struct taskgetquery: Content {
+    struct completedtaskgetquery: Content {
         let preload: Bool? // Preload category information linked to this task
     }
-    tasksRoute.get() { (req: Request) async throws -> [Task] in
+    completedTasksRoute.get(use: { (req: Request) async throws -> [CompletedTask] in
         var preload: Bool = true
-        if let query: taskgetquery = try? req.query.decode(taskgetquery.self) {
+        if let query: completedtaskgetquery = try? req.query.decode(completedtaskgetquery.self) {
             if let querypreloadunwrapped = query.preload {
                 preload = querypreloadunwrapped
             }
         }
 
-        guard let tasksQueryBuilder: QueryBuilder<Task> = try? Task
-                                                                .query(on: req.db)
+        guard let tasksQueryBuilder: QueryBuilder<CompletedTask> = try? CompletedTask
+                                                                        .query(on: req.db)
         else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Failed to query tasks"))
+            throw Abort(.custom(code: 500, reasonPhrase: "Failed to query completed tasks"))
         }
-        guard let tasks: [Task] = preload ? try? await tasksQueryBuilder
-                                                                .with(\.$category)
-                                                                .all()
-                                           : try? await tasksQueryBuilder
-                                                                .all() 
+        guard let tasks: [CompletedTask] = preload ? try? await tasksQueryBuilder
+                                                                        .with(\.$task, { task in 
+                                                                            task.with(\.$category)
+                                                                        })
+                                                                        .all()
+                                                    : try? await tasksQueryBuilder
+                                                                        .all() 
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Task not found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "Completed task not found"))
         }
 
         return tasks
-    }
+    })
 
     // Read Single
-    tasksRoute.get(":id") { (req: Request) async throws -> Task in
+    completedTasksRoute.get(":id", use: { (req: Request) async throws -> CompletedTask in
         var preload: Bool = true
-        if let query: taskgetquery = try? req.query.decode(taskgetquery.self) {
+        if let query: completedtaskgetquery = try? req.query.decode(completedtaskgetquery.self) {
             if let querypreloadunwrapped = query.preload {
                 preload = querypreloadunwrapped
             }
@@ -59,40 +61,44 @@ func initTasksRoutes(_ app: Application) throws {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
 
-        guard let taskQueryBuilder: QueryBuilder<Task> = try? Task
-                                                                .query(on: req.db)
+        guard let taskQueryBuilder: QueryBuilder<CompletedTask> = try? CompletedTask
+                                                                        .query(on: req.db)
         else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Failed to query tasks"))
+            throw Abort(.custom(code: 500, reasonPhrase: "Failed to query completed tasks"))
         }
-        guard let task: Task = preload ? try? await taskQueryBuilder
-                                                .with(\.$category)
-                                                .filter(\.$id == idparam)
-                                                .first()
-                                       : try? await taskQueryBuilder
-                                                .filter(\.$id == idparam)
-                                                .first()
+        guard let task: CompletedTask = preload ? try? await taskQueryBuilder
+                                                                        .with(\.$task, { task in 
+                                                                            task.with(\.$category)
+                                                                        })
+                                                                        .filter(\.$id == idparam)
+                                                                        .first()
+                                                    : try? await taskQueryBuilder
+                                                                        .filter(\.$id == idparam)
+                                                                        .first()
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Task not found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "Completed task not found"))
         }
 
         return task
-    }
+    })
 
     // Update
     struct taskpatchquery: Content {
         let name: String?
-        let category: UUID?
+        let started: Date?
+        let completed: Date?
+        let task: UUID?
     }
-    tasksRoute.patch(":id") { (req: Request) async throws -> Task in
+    completedTasksRoute.patch(":id", use: { (req: Request) async throws -> CompletedTask in
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
-        guard let task: Task = try? await Task
-                                            .query(on: req.db)
-                                            .filter(\.$id == idparam)
-                                            .first()
+        guard let task: CompletedTask = try? await CompletedTask
+                                                    .query(on: req.db)
+                                                    .filter(\.$id == idparam)
+                                                    .first()
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Requested task not found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "Requested completed task not found"))
         }
 
         guard let query: taskpatchquery = try? req.query.decode(taskpatchquery.self) else {
@@ -102,34 +108,40 @@ func initTasksRoutes(_ app: Application) throws {
         if let unwrappedquery = query.name {
             task.name = unwrappedquery
         }
-        if let unwrappedquery = query.category {
-            task.$category.id = unwrappedquery
+        if let unwrappedquery = query.started {
+            task.started = unwrappedquery
+        }
+        if let unwrappedquery = query.completed {
+            task.completed = unwrappedquery
+        }
+        if let unwrappedquery = query.task {
+            task.$task.id = unwrappedquery
         }
 
         guard let taskupdated: () = try? await task.update(on: req.db) else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to update task in database"))
+            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to update completed task in database"))
         }
 
         return task
-    }
+    })
 
     // Delete
-    tasksRoute.delete(":id") { (req: Request) async throws -> Task in
+    completedTasksRoute.delete(":id", use: { (req: Request) async throws -> CompletedTask in
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
-        guard let task: Task = try? await Task
-                                            .query(on: req.db)
-                                            .filter(\.$id == idparam)
-                                            .first()
+        guard let task: CompletedTask = try? await CompletedTask
+                                                    .query(on: req.db)
+                                                    .filter(\.$id == idparam)
+                                                    .first()
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Requested task not found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "Requested completed task not found"))
         }
         guard let taskdeleted: () = try? await task.delete(on: req.db) else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to delete task in database"))
+            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to delete completed task in database"))
         }
 
         return task
-    }
+    })
 
 }

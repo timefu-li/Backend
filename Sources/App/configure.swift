@@ -18,6 +18,7 @@ public func configure(_ app: Application) async throws {
     // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
     // register routes
     try initTasksRoutes(app)
+    try initCompletedTasksRoute(app)
     try initCategoriesRoute(app)
 
     print("Now serving following routes succesfully:")

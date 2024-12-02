@@ -31,10 +31,10 @@ final class CompletedTask: Model, Content {
 
     // Creates a new Task with all properties set.
     init(id: UUID? = nil, name: String, started: Date, completed: Date, taskID: UUID) {
-        self.id = id
-        self.completed = completed
-        self.started = started
         self.name = name
+        self.started = started
+        self.completed = completed
+        self.id = id
         self.$task.id = taskID
     }
 }

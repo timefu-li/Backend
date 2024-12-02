@@ -6,7 +6,7 @@ func initCategoriesRoute(_ app: Application) throws {
     let categoriesRoute = app.grouped("categories")
 
     // Create
-    categoriesRoute.post() { (req: Request) async throws -> Category in
+    categoriesRoute.post(use: { (req: Request) async throws -> Category in
         guard let categorymodel: Category = try? req.content.decode(Category.self) else {
             throw Abort(.custom(code: 422, reasonPhrase: "Request body sent by user is invalid"))
         }
@@ -15,13 +15,13 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         return categorymodel
-    }
+    })
 
     // Read
     struct categorygetquery: Content {
         let preload: Bool? // Preload all tasks information linked to this category
     }
-    categoriesRoute.get() { (req: Request) async throws -> [Category] in
+    categoriesRoute.get(use: { (req: Request) async throws -> [Category] in
         var preload: Bool = true
         if let query: categorygetquery = try? req.query.decode(categorygetquery.self) {
             if let querypreloadunwrapped = query.preload {
@@ -44,10 +44,10 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         return categories
-    }
+    })
 
     // Read Single
-    categoriesRoute.get(":id") { (req: Request) async throws -> Category in
+    categoriesRoute.get(":id", use: { (req: Request) async throws -> Category in
         var preload: Bool = true
         if let query: categorygetquery = try? req.query.decode(categorygetquery.self) {
             if let querypreloadunwrapped = query.preload {
@@ -76,7 +76,7 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         return category
-    }
+    })
 
     // Update
     struct categorypatchquery: Content {
@@ -84,7 +84,7 @@ func initCategoriesRoute(_ app: Application) throws {
         let emoji: String?
         let colour: String?
     }
-    categoriesRoute.patch(":id") { (req: Request) async throws -> Category in
+    categoriesRoute.patch(":id", use: { (req: Request) async throws -> Category in
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
@@ -115,10 +115,10 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         return category
-    }
+    })
 
     // Delete
-    categoriesRoute.delete(":id") { (req: Request) async throws -> Category in
+    categoriesRoute.delete(":id", use: { (req: Request) async throws -> Category in
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
@@ -133,6 +133,6 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         return category
-    }
+    })
 
 }
