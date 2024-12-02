@@ -50,7 +50,7 @@ struct InitCategory: AsyncMigration {
             .create()
 
         // Seed Database
-        let seed: Category = Category(name: "Test Category", emoji: "placeholder", colour: "red")
+        let seed: Category = Category(name: "No Category", emoji: "placeholder", colour: "grey")
         try await seed.create(on: database)
     }
 

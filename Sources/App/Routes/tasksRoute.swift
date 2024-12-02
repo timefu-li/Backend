@@ -40,8 +40,8 @@ func initTasksRoutes(_ app: Application) throws {
 
     // Update
     struct taskpatchquery: Content {
-        var name: String?
-        var category: UUID?
+        let name: String?
+        let category: UUID?
     }
     tasksRoute.patch(":id") { (req: Request) async throws -> Task in
         guard let idparam: UUID = try? req.parameters.get("id") else {
