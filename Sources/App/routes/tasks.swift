@@ -1,9 +1,24 @@
 import Vapor
 import Fluent
 
-func routes(_ app: Application) throws {
+func initTasksRoutes(_ app: Application) throws {
 
-    app.get("tasks") { (req: Request) async throws -> [Task] in
+    let tasksRoute = app.grouped("tasks")
+
+    // Create
+    tasksRoute.post() { (req: Request) async throws -> Task in
+        guard let taskmodel: Task = try? req.content.decode(Task.self) else {
+            throw Abort(.custom(code: 422, reasonPhrase: "Request body sent by user is invalid"))
+        }
+        guard let taskcreated: () = try? await taskmodel.create(on: req.db) else {
+            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to add new task to database"))
+        }
+
+        return taskmodel
+    }
+
+    // Read
+    tasksRoute.get() { (req: Request) async throws -> [Task] in
         guard let tasks: [Task] = try? await Task.query(on: req.db).all() else {
             throw Abort(.custom(code: 200, reasonPhrase: "No tasks found"))
         }
@@ -11,7 +26,8 @@ func routes(_ app: Application) throws {
         return tasks
     }
 
-    app.get("tasks", ":id") { (req: Request) async throws -> Task in
+    // Read Single
+    tasksRoute.get(":id") { (req: Request) async throws -> Task in
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
@@ -22,25 +38,12 @@ func routes(_ app: Application) throws {
         return task
     }
 
-    app.delete("tasks", ":id") { (req: Request) async throws -> Task in
-        guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
-        }
-        guard let task: Task = try? await Task.query(on: req.db).filter(\.$id == idparam).first() else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Requested task not found"))
-        }
-        guard let taskdeleted: () = try? await task.delete(on: req.db) else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to delete task in database"))
-        }
-
-        return task
-    }
-
+    // Update
     struct taskpatchquery: Content {
         var name: String?
         var category: UUID?
     }
-    app.patch("tasks", ":id") { (req: Request) async throws -> Task in
+    tasksRoute.patch(":id") { (req: Request) async throws -> Task in
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
@@ -66,16 +69,19 @@ func routes(_ app: Application) throws {
         return task
     }
 
-    app.post("tasks") { (req: Request) async throws -> Task in
-        guard let taskmodel: Task = try? req.content.decode(Task.self) else {
-            throw Abort(.custom(code: 422, reasonPhrase: "Request body sent by user is invalid"))
+    // Delete
+    tasksRoute.delete(":id") { (req: Request) async throws -> Task in
+        guard let idparam: UUID = try? req.parameters.get("id") else {
+            throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
-        guard let taskcreated: () = try? await taskmodel.create(on: req.db) else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to add new task to database"))
+        guard let task: Task = try? await Task.query(on: req.db).filter(\.$id == idparam).first() else {
+            throw Abort(.custom(code: 200, reasonPhrase: "Requested task not found"))
+        }
+        guard let taskdeleted: () = try? await task.delete(on: req.db) else {
+            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to delete task in database"))
         }
 
-        return taskmodel
+        return task
     }
-
 
 }
