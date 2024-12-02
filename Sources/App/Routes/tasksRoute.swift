@@ -18,9 +18,22 @@ func initTasksRoutes(_ app: Application) throws {
     }
 
     // Read
+    struct taskgetquery: Content {
+        let preload: Bool? // Preload category information linked to this task
+    }
     tasksRoute.get() { (req: Request) async throws -> [Task] in
-        guard let tasks: [Task] = try? await Task.query(on: req.db).all() else {
-            throw Abort(.custom(code: 200, reasonPhrase: "No tasks found"))
+        var preload: Bool = true
+        if let query: taskgetquery = try? req.query.decode(taskgetquery.self) {
+            if let querypreloadunwrapped = query.preload {
+                preload = querypreloadunwrapped
+            }
+        }
+
+        guard let tasksQueryBuilder: QueryBuilder<Task> = try? Task.query(on: req.db) else {
+            throw Abort(.custom(code: 500, reasonPhrase: "Failed to query tasks"))
+        }
+        guard let tasks: [Task] = preload ? try? await tasksQueryBuilder.with(\.$category).all() : try? await tasksQueryBuilder.all() else {
+            throw Abort(.custom(code: 200, reasonPhrase: "Task not found"))
         }
 
         return tasks
@@ -28,11 +41,22 @@ func initTasksRoutes(_ app: Application) throws {
 
     // Read Single
     tasksRoute.get(":id") { (req: Request) async throws -> Task in
+        var preload: Bool = true
+        if let query: taskgetquery = try? req.query.decode(taskgetquery.self) {
+            if let querypreloadunwrapped = query.preload {
+                preload = querypreloadunwrapped
+            }
+        }
+
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
-        guard let task: Task = try? await Task.query(on: req.db).filter(\.$id == idparam).first() else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Requested task not found"))
+
+        guard let taskQueryBuilder: QueryBuilder<Task> = try? Task.query(on: req.db) else {
+            throw Abort(.custom(code: 500, reasonPhrase: "Failed to query tasks"))
+        }
+        guard let task: Task = preload ? try? await taskQueryBuilder.with(\.$category).filter(\.$id == idparam).first() : try? await taskQueryBuilder.filter(\.$id == idparam).first() else {
+            throw Abort(.custom(code: 200, reasonPhrase: "Task not found"))
         }
 
         return task

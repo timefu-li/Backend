@@ -19,7 +19,7 @@ func initCategoriesRoute(_ app: Application) throws {
 
     // Read
     struct categorygetquery: Content {
-        let preload: Bool? // Preload all tasks linked to this category
+        let preload: Bool? // Preload all tasks information linked to this category
     }
     categoriesRoute.get() { (req: Request) async throws -> [Category] in
         var preload: Bool = true
