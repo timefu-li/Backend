@@ -50,6 +50,7 @@ struct InitCategory: AsyncMigration {
             .create()
 
         // Seed Database
+        // As an assumption, "No Category" will always be the first ever category in the schema
         let seed: Category = Category(name: "No Category", emoji: "placeholder", colour: "grey")
         try await seed.create(on: database)
     }

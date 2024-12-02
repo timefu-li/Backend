@@ -49,7 +49,8 @@ struct InitTask: AsyncMigration {
 
         // Seed Database
         if let category_id: UUID = try await Category.query(on: database).first()?.id {
-            let seed: Task = Task(name: "Test Task", categoryID: category_id)
+            // As an assumption, "Break" will always be the first ever task in the schema
+            let seed: Task = Task(name: "Break", categoryID: category_id)
             try await seed.create(on: database)
         } else {
             throw InitTaskSeedingError.categoryMissing
