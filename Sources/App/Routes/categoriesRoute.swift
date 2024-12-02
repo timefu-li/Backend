@@ -17,7 +17,7 @@ func initCategoriesRoute(_ app: Application) throws {
         return categorymodel
     })
 
-    // Read
+    // Read All
     struct categorygetquery: Content {
         let preload: Bool? // Preload all tasks information linked to this category
     }

@@ -17,10 +17,10 @@ func initCompletedTasksRoute(_ app: Application) throws {
         return completedtaskmodel
     })
 
-    // Read
+    // Read All
     struct completedtaskgetquery: Content {
         let preload: Bool? // Preload category information linked to this task
-        let latest: Bool? // Preload category information linked to this task
+        let latest: Bool? // Get latest or oldest results first
     }
     completedTasksRoute.get(use: { (req: Request) async throws -> [CompletedTask] in
         var preload: Bool = true

@@ -17,7 +17,7 @@ func initTasksRoutes(_ app: Application) throws {
         return taskmodel
     })
 
-    // Read
+    // Read All
     struct taskgetquery: Content {
         let preload: Bool? // Preload category information linked to this task
     }
