@@ -1,4 +1,5 @@
 import Vapor
+import VaporToOpenAPI
 import Fluent
 
 func initCategoriesRoute(_ app: Application) throws {
@@ -15,7 +16,12 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         return categorymodel
-    })
+    }).openAPI(
+        summary: "Create a category",
+        description: "Create a new category with the provided data",
+        body: .type(Category.self),
+        response: .type(Category.self)
+    )
 
     // Read All
     struct categorygetquery: Content {
@@ -44,7 +50,11 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         return categories
-    })
+    }).openAPI(
+        summary: "Get all categories",
+        description: "Get an array of all categories currently in the database",
+        response: .type([Category].self)
+    )
 
     // Read Single
     categoriesRoute.get(":id", use: { (req: Request) async throws -> Category in
@@ -76,7 +86,11 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         return category
-    })
+    }).openAPI(
+        summary: "Get category",
+        description: "Get a specific category based on the ID",
+        response: .type(Category.self)
+    )
 
     // Update
     struct categorypatchquery: Content {
@@ -115,7 +129,11 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         return category
-    })
+    }).openAPI(
+        summary: "Update category",
+        description: "Update a specific category based on the ID",
+        response: .type(Category.self)
+    )
 
     // Delete
     categoriesRoute.delete(":id", use: { (req: Request) async throws -> Category in
@@ -133,6 +151,10 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         return category
-    })
+    }).openAPI(
+        summary: "Delete category",
+        description: "Delete a specific category based on the ID",
+        response: .type(Category.self)
+    )
 
 }

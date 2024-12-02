@@ -1,4 +1,5 @@
 import Vapor
+import VaporToOpenAPI
 import Fluent
 
 func initTasksRoutes(_ app: Application) throws {
@@ -15,7 +16,12 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         return taskmodel
-    })
+    }).openAPI(
+        summary: "Create a task",
+        description: "Create a new task with the provided data",
+        body: .type(Task.self),
+        response: .type(Task.self)
+    )
 
     // Read All
     struct taskgetquery: Content {
@@ -44,7 +50,11 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         return tasks
-    })
+    }).openAPI(
+        summary: "Get all tasks",
+        description: "Get an array of all tasks currently in the database",
+        response: .type([Task].self)
+    )
 
     // Read Single
     tasksRoute.get(":id", use: { (req: Request) async throws -> Task in
@@ -76,7 +86,11 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         return task
-    })
+    }).openAPI(
+        summary: "Get task",
+        description: "Get a specific task based on the ID",
+        response: .type(Task.self)
+    )
 
     // Update
     struct taskpatchquery: Content {
@@ -111,7 +125,11 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         return task
-    })
+    }).openAPI(
+        summary: "Update task",
+        description: "Update a specific task based on the ID",
+        response: .type(Task.self)
+    )
 
     // Delete
     tasksRoute.delete(":id", use: { (req: Request) async throws -> Task in
@@ -130,6 +148,10 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         return task
-    })
+    }).openAPI(
+        summary: "Delete task",
+        description: "Delete a specific task based on the ID",
+        response: .type(Task.self)
+    )
 
 }

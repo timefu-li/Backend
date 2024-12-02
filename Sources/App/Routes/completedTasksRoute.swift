@@ -1,4 +1,5 @@
 import Vapor
+import VaporToOpenAPI
 import Fluent
 
 func initCompletedTasksRoute(_ app: Application) throws {
@@ -15,7 +16,12 @@ func initCompletedTasksRoute(_ app: Application) throws {
         }
 
         return completedtaskmodel
-    })
+    }).openAPI(
+        summary: "Create a completed task",
+        description: "Create a new completed task with the provided data",
+        body: .type(CompletedTask.self),
+        response: .type(CompletedTask.self)
+    )
 
     // Read All
     struct completedtaskgetquery: Content {
@@ -51,7 +57,11 @@ func initCompletedTasksRoute(_ app: Application) throws {
         }
 
         return latest ? tasks.reversed() : tasks
-    })
+    }).openAPI(
+        summary: "Get all completed tasks",
+        description: "Get an array of all completed tasks currently in the database",
+        response: .type([CompletedTask].self)
+    )
 
     // Read Single
     completedTasksRoute.get(":id", use: { (req: Request) async throws -> CompletedTask in
@@ -85,7 +95,11 @@ func initCompletedTasksRoute(_ app: Application) throws {
         }
 
         return task
-    })
+    }).openAPI(
+        summary: "Get completed task",
+        description: "Get a specific completed task based on the ID",
+        response: .type(CompletedTask.self)
+    )
 
     // Update
     struct taskpatchquery: Content {
@@ -128,7 +142,11 @@ func initCompletedTasksRoute(_ app: Application) throws {
         }
 
         return task
-    })
+    }).openAPI(
+        summary: "Update completed task",
+        description: "Update a specific completed task based on the ID",
+        response: .type(CompletedTask.self)
+    )
 
     // Delete
     completedTasksRoute.delete(":id", use: { (req: Request) async throws -> CompletedTask in
@@ -147,6 +165,10 @@ func initCompletedTasksRoute(_ app: Application) throws {
         }
 
         return task
-    })
+    }).openAPI(
+        summary: "Delete completed task",
+        description: "Delete a specific completed task based on the ID",
+        response: .type(CompletedTask.self)
+    )
 
 }

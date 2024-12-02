@@ -1,4 +1,5 @@
 import Vapor
+import VaporToOpenAPI
 import Fluent
 import FluentSQLiteDriver
 
@@ -14,8 +15,32 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(InitTask())
     app.migrations.add(InitCompletedTask())
 
-    // uncomment to serve files from /Public folder
-    // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+    // CORS Configuration
+    let corsConfiguration = CORSMiddleware.Configuration(
+        allowedOrigin: .all,
+        allowedMethods: [.GET, .POST, .PUT, .OPTIONS, .DELETE, .PATCH],
+        allowedHeaders: [.accept, .authorization, .contentType, .origin, .xRequestedWith, .userAgent, .accessControlAllowOrigin]
+    )
+    let cors = CORSMiddleware(configuration: corsConfiguration)
+    // cors middleware should come before default error middleware using `at: .beginning`
+    app.middleware.use(cors, at: .beginning)
+
+    // Serve swagger UI
+    let swagger = FileMiddleware(publicDirectory: app.directory.publicDirectory + "swagger-ui/", defaultFile: "index.html")
+    app.middleware.use(swagger)
+
+    // generate OpenAPI documentation
+    app.get("Swagger", "swagger.json") { req in
+      req.application.routes.openAPI(
+        info: InfoObject(
+          title: "Timefu-li Backend API",
+          description: "Backend service for https://github.com/timefu-li",
+          version: "0.1.0"
+        )
+      )
+    }
+    .excludeFromOpenAPI()
+
     // register routes
     try initTasksRoutes(app)
     try initCompletedTasksRoute(app)
