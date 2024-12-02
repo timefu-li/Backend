@@ -20,12 +20,17 @@ func initCompletedTasksRoute(_ app: Application) throws {
     // Read
     struct completedtaskgetquery: Content {
         let preload: Bool? // Preload category information linked to this task
+        let latest: Bool? // Preload category information linked to this task
     }
     completedTasksRoute.get(use: { (req: Request) async throws -> [CompletedTask] in
         var preload: Bool = true
+        var latest: Bool = true
         if let query: completedtaskgetquery = try? req.query.decode(completedtaskgetquery.self) {
             if let querypreloadunwrapped = query.preload {
                 preload = querypreloadunwrapped
+            }
+            if let querylatestunwrapped = query.latest {
+                latest = querylatestunwrapped
             }
         }
 
@@ -45,7 +50,7 @@ func initCompletedTasksRoute(_ app: Application) throws {
             throw Abort(.custom(code: 200, reasonPhrase: "Completed task not found"))
         }
 
-        return tasks.reversed()
+        return latest ? tasks.reversed() : tasks
     })
 
     // Read Single
