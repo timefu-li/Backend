@@ -151,6 +151,11 @@ func initTasksRoutes(_ app: Application) throws {
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "Requested task not found"))
         }
+
+        if (task.completedtasks.count != 0) {
+            throw Abort(.custom(code: 500, reasonPhrase: "Currently completed tasks referencing this task. Please remove all references to this task."))
+        }
+
         guard let taskdeleted: () = try? await task.delete(on: req.db) else {
             throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to delete task in database"))
         }
