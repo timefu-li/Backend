@@ -25,13 +25,18 @@ func initTasksRoutes(_ app: Application) throws {
 
     // Read All
     struct taskgetquery: Content {
-        let preload: Bool? // Preload category information linked to this task
+        let preloadCategory: Bool? // Preload category information linked to this task
+        let preloadCompletedTasks: Bool? // Preload completed tasks information linked to this task
     }
     tasksRoute.get(use: { (req: Request) async throws -> [Task] in
-        var preload: Bool = true
+        var preloadCategory: Bool = true
+        var preloadCompletedTasks: Bool = false
         if let query: taskgetquery = try? req.query.decode(taskgetquery.self) {
-            if let querypreloadunwrapped = query.preload {
-                preload = querypreloadunwrapped
+            if let querypreloadunwrapped = query.preloadCategory {
+                preloadCategory = querypreloadunwrapped
+            }
+            if let querypreloadunwrapped = query.preloadCompletedTasks {
+                preloadCompletedTasks = querypreloadunwrapped
             }
         }
 
@@ -42,7 +47,8 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         guard let tasks: [Task] = try? await tasksQueryBuilder
-            .preloadAssociationData(preload: preload) // Check if we need to preload all data
+            .preloadAssociationCategory(preload: preloadCategory) // Check if we need to preload all category data
+            .preloadAssociationCompletedTasks(preload: preloadCompletedTasks) // Check if we need to preload all completed tasks data
             .all()
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "No tasks found"))
@@ -57,10 +63,14 @@ func initTasksRoutes(_ app: Application) throws {
 
     // Read Single
     tasksRoute.get(":id", use: { (req: Request) async throws -> Task in
-        var preload: Bool = true
+        var preloadcategory: Bool = true
+        var preloadcompletedtasks: Bool = false
         if let query: taskgetquery = try? req.query.decode(taskgetquery.self) {
-            if let querypreloadunwrapped = query.preload {
-                preload = querypreloadunwrapped
+            if let querypreloadunwrapped = query.preloadCategory {
+                preloadcategory = querypreloadunwrapped
+            }
+            if let querypreloadunwrapped = query.preloadCompletedTasks {
+                preloadcompletedtasks = querypreloadunwrapped
             }
         }
 
@@ -75,7 +85,8 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         guard let task: Task = try? await taskQueryBuilder
-            .preloadAssociationData(preload: preload) // Check if we need to preload all data
+            .preloadAssociationCategory(preload: preloadcategory) // Check if we need to preload all category data
+            .preloadAssociationCompletedTasks(preload: preloadcompletedtasks) // Check if we need to preload all completed tasks data
             .filter(\.$id == idparam)
             .first()
         else {

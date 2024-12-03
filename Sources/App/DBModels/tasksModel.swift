@@ -20,7 +20,7 @@ final class Task: Model, Content {
 
     // Reference to all the completed tasks belonging to this task.
     @Children(for: \.$task)
-    var tasks: [CompletedTask]
+    var completedtasks: [CompletedTask]
 
     // Creates a new, empty Task
     init() { }
@@ -66,10 +66,19 @@ struct InitTask: AsyncMigration {
 // Extensions ontop of QueryBuilder for Task to allow us to retrieve additional data etc. Like a middleware before a query is finalised.
 public extension QueryBuilder<Task> {
 
-    // Check to see if we need to preload all association data into query or not - By default we will
-    internal func preloadAssociationData(preload: Bool = true) -> Self {
+    // Check to see if we need to preload all category association data into query or not - By default we will
+    internal func preloadAssociationCategory(preload: Bool = true) -> Self {
         if preload {
             return self.with(\.$category)
+        } else {
+            return self
+        }
+    }
+
+    // Check to see if we need to preload all completed tasks association data into query or not - By default we wont
+    internal func preloadAssociationCompletedTasks(preload: Bool = false) -> Self {
+        if preload {
+            return self.with(\.$completedtasks)
         } else {
             return self
         }
