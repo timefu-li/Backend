@@ -3,9 +3,9 @@ import Fluent
 import FluentSQLiteDriver
 
 struct ColourRGB: Encodable, Decodable {
-    let red: uint8;
-    let green: uint8;
-    let blue: uint8;
+    let red: UInt8;
+    let green: UInt8;
+    let blue: UInt8;
 }
 
 final class Category: Model, Content {
