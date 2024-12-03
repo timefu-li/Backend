@@ -46,7 +46,7 @@ func initTasksRoutes(_ app: Application) throws {
                                            : try? await tasksQueryBuilder
                                                                 .all() 
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Task not found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "No tasks found"))
         }
 
         return tasks

@@ -53,7 +53,7 @@ func initCompletedTasksRoute(_ app: Application) throws {
                                                     : try? await tasksQueryBuilder
                                                                         .all() 
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Completed task not found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "No completed tasks found"))
         }
 
         return latest ? tasks.reversed() : tasks
