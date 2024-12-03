@@ -144,6 +144,11 @@ func initCategoriesRoute(_ app: Application) throws {
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "Requested category not found"))
         }
+
+        if (category.tasks.count != 0) {
+            throw Abort(.custom(code: 500, reasonPhrase: "Currently tasks referencing this category. Please remove all references to this task."))
+        }
+
         guard let categorydeleted: () = try? await category.delete(on: req.db) else {
             throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to delete category in database"))
         }
