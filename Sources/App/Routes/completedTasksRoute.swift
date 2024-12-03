@@ -9,7 +9,7 @@ func initCompletedTasksRoute(_ app: Application) throws {
     // Create
     completedTasksRoute.post(use: { (req: Request) async throws -> CompletedTask in
         guard let completedtaskmodel: CompletedTask = try? req.content.decode(CompletedTask.self) else {
-            throw Abort(.custom(code: 422, reasonPhrase: "Request body sent by user is invalid"))
+            throw Abort(.custom(code: 400, reasonPhrase: "Request body sent by user is invalid"))
         }
         guard let completedtaskcreated: () = try? await completedtaskmodel.create(on: req.db) else {
             throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to add new task to database"))
@@ -70,7 +70,7 @@ func initCompletedTasksRoute(_ app: Application) throws {
         }
 
         guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
+            throw Abort(.custom(code: 400, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
 
         guard let taskQueryBuilder: QueryBuilder<CompletedTask> = try? CompletedTask
@@ -103,7 +103,7 @@ func initCompletedTasksRoute(_ app: Application) throws {
     }
     completedTasksRoute.patch(":id", use: { (req: Request) async throws -> CompletedTask in
         guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
+            throw Abort(.custom(code: 400, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
         guard let task: CompletedTask = try? await CompletedTask
             .query(on: req.db)
@@ -114,7 +114,7 @@ func initCompletedTasksRoute(_ app: Application) throws {
         }
 
         guard let query: taskpatchquery = try? req.query.decode(taskpatchquery.self) else {
-            throw Abort(.custom(code: 422, reasonPhrase: "Request queries sent by user is invalid"))
+            throw Abort(.custom(code: 400, reasonPhrase: "Request queries sent by user is invalid"))
         }
         // TODO: I don't like how manual this is so maybe needs some custom function to iterate over the content struct, but it's simple and it works
         if let unwrappedquery = query.name {
@@ -144,7 +144,7 @@ func initCompletedTasksRoute(_ app: Application) throws {
     // Delete
     completedTasksRoute.delete(":id", use: { (req: Request) async throws -> CompletedTask in
         guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
+            throw Abort(.custom(code: 400, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
         guard let task: CompletedTask = try? await CompletedTask
             .query(on: req.db)

@@ -9,7 +9,7 @@ func initCategoriesRoute(_ app: Application) throws {
     // Create
     categoriesRoute.post(use: { (req: Request) async throws -> Category in
         guard let categorymodel: Category = try? req.content.decode(Category.self) else {
-            throw Abort(.custom(code: 422, reasonPhrase: "Request body sent by user is invalid"))
+            throw Abort(.custom(code: 400, reasonPhrase: "Request body sent by user is invalid"))
         }
         guard let categorycreated: () = try? await categorymodel.create(on: req.db) else {
             throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to add new category to database"))
@@ -65,7 +65,7 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
+            throw Abort(.custom(code: 400, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
 
         guard let categoriesQueryBuilder: QueryBuilder<Category> = try? Category
@@ -97,7 +97,7 @@ func initCategoriesRoute(_ app: Application) throws {
     }
     categoriesRoute.patch(":id", use: { (req: Request) async throws -> Category in
         guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
+            throw Abort(.custom(code: 400, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
         guard let category: Category = try? await Category
             .query(on: req.db)
@@ -108,7 +108,7 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         guard let query: categorypatchquery = try? req.query.decode(categorypatchquery.self) else {
-            throw Abort(.custom(code: 422, reasonPhrase: "Request queries sent by user is invalid"))
+            throw Abort(.custom(code: 400, reasonPhrase: "Request queries sent by user is invalid"))
         }
         // TODO: I don't like how manual this is so maybe needs some custom function to iterate over the content struct, but it's simple and it works
         if let unwrappedquery = query.name {
@@ -135,7 +135,7 @@ func initCategoriesRoute(_ app: Application) throws {
     // Delete
     categoriesRoute.delete(":id", use: { (req: Request) async throws -> Category in
         guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
+            throw Abort(.custom(code: 400, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
         guard let category: Category = try? await Category
             .query(on: req.db)
