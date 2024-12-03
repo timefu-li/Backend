@@ -9,10 +9,10 @@ func initCategoriesRoute(_ app: Application) throws {
     // Create
     categoriesRoute.post(use: { (req: Request) async throws -> Category in
         guard let categorymodel: Category = try? req.content.decode(Category.self) else {
-            throw Abort(.custom(code: 400, reasonPhrase: "Request body sent by user is invalid"))
+            throw Abort(.custom(code: 400, reasonPhrase: "INVALIDREQUESTBODY:Request body sent by user is invalid"))
         }
         guard let categorycreated: () = try? await categorymodel.create(on: req.db) else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to add new category to database"))
+            throw Abort(.custom(code: 500, reasonPhrase: "INTERNALSERVERERROR:Request valid but unable to add new category to database"))
         }
 
         return categorymodel
@@ -38,14 +38,14 @@ func initCategoriesRoute(_ app: Application) throws {
         guard let categoriesQueryBuilder: QueryBuilder<Category> = try? Category
             .query(on: req.db)
         else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Failed to query categories"))
+            throw Abort(.custom(code: 500, reasonPhrase: "INTERNALSERVERERROR:Failed to query categories"))
         }
 
         guard let categories: [Category] = try? await categoriesQueryBuilder
             .preloadAssociationData(preload: preload) // Check if we need to preload all data
             .all()
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "No categories found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "NOTFOUND:No categories found"))
         }
 
         return categories
@@ -65,13 +65,13 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 400, reasonPhrase: "Provided ID is not in a valid UUID format"))
+            throw Abort(.custom(code: 400, reasonPhrase: "INVALIDID:Provided ID is not in a valid UUID format"))
         }
 
         guard let categoriesQueryBuilder: QueryBuilder<Category> = try? Category
             .query(on: req.db) 
         else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Failed to query categories"))
+            throw Abort(.custom(code: 500, reasonPhrase: "INTERNALSERVERERROR:Failed to query categories"))
         }
 
         guard let category: Category = try? await categoriesQueryBuilder
@@ -79,7 +79,7 @@ func initCategoriesRoute(_ app: Application) throws {
             .filter(\.$id == idparam)
             .first()
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "No categories found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "NOTFOUND:No categories found"))
         }
 
         return category
@@ -97,18 +97,18 @@ func initCategoriesRoute(_ app: Application) throws {
     }
     categoriesRoute.patch(":id", use: { (req: Request) async throws -> Category in
         guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 400, reasonPhrase: "Provided ID is not in a valid UUID format"))
+            throw Abort(.custom(code: 400, reasonPhrase: "INVALIDID:Provided ID is not in a valid UUID format"))
         }
         guard let category: Category = try? await Category
             .query(on: req.db)
             .filter(\.$id == idparam)
             .first() 
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Requested category not found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "NOTFOUND:Requested category not found"))
         }
 
         guard let query: categorypatchquery = try? req.query.decode(categorypatchquery.self) else {
-            throw Abort(.custom(code: 400, reasonPhrase: "Request queries sent by user is invalid"))
+            throw Abort(.custom(code: 400, reasonPhrase: "INVALIDREQUESTQUERY:Request queries sent by user is invalid"))
         }
         // TODO: I don't like how manual this is so maybe needs some custom function to iterate over the content struct, but it's simple and it works
         if let unwrappedquery = query.name {
@@ -122,7 +122,7 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         guard let taskupdated: () = try? await category.update(on: req.db) else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to update task in database"))
+            throw Abort(.custom(code: 500, reasonPhrase: "INTERNALSERVERERROR:Request valid but unable to update task in database"))
         }
 
         return category
@@ -135,22 +135,22 @@ func initCategoriesRoute(_ app: Application) throws {
     // Delete
     categoriesRoute.delete(":id", use: { (req: Request) async throws -> Category in
         guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 400, reasonPhrase: "Provided ID is not in a valid UUID format"))
+            throw Abort(.custom(code: 400, reasonPhrase: "INVALIDID:Provided ID is not in a valid UUID format"))
         }
         guard let category: Category = try? await Category
             .query(on: req.db)
             .filter(\.$id == idparam)
             .first()
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Requested category not found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "NOTFOUND:Requested category not found"))
         }
 
         if (category.tasks.count != 0) {
-            throw Abort(.custom(code: 500, reasonPhrase: "Currently tasks referencing this category. Please remove all references to this task."))
+            throw Abort(.custom(code: 500, reasonPhrase: "REFERENCEFOUND:Currently tasks referencing this category. Please remove all references to this task."))
         }
 
         guard let categorydeleted: () = try? await category.delete(on: req.db) else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to delete category in database"))
+            throw Abort(.custom(code: 500, reasonPhrase: "INTERNALSERVERERROR:Request valid but unable to delete category in database"))
         }
 
         return category

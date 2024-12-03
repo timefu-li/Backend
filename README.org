@@ -1,3 +1,13 @@
 * Timefu.li Backend
 
 Backend API for Timefu.li, built in Swift + Vapor.
+
+
+** Error Codes
+
+- INVALIDREQUESTBODY - Invalid request body sent by user.
+- INVALIDREQUESTQUERY - Invalid request queries sent by user.
+- INVALIDID - Invalid ID sent by user.
+- NOTFOUND - Category, Task or Completed Task requested not found.
+- REFERENCEFOUND - A reference to this Category or Task has been found which must be deleted before continuing.
+- INTERNALSERVERERROR - Internal server error, usually an issue with the backend DB query or connection.

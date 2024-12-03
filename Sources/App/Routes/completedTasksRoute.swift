@@ -9,10 +9,10 @@ func initCompletedTasksRoute(_ app: Application) throws {
     // Create
     completedTasksRoute.post(use: { (req: Request) async throws -> CompletedTask in
         guard let completedtaskmodel: CompletedTask = try? req.content.decode(CompletedTask.self) else {
-            throw Abort(.custom(code: 400, reasonPhrase: "Request body sent by user is invalid"))
+            throw Abort(.custom(code: 400, reasonPhrase: "INVALIDREQUESTBODY:Request body sent by user is invalid"))
         }
         guard let completedtaskcreated: () = try? await completedtaskmodel.create(on: req.db) else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to add new task to database"))
+            throw Abort(.custom(code: 500, reasonPhrase: "INTERNALSERVERERROR:Request valid but unable to add new task to database"))
         }
 
         return completedtaskmodel
@@ -43,14 +43,14 @@ func initCompletedTasksRoute(_ app: Application) throws {
         guard let tasksQueryBuilder: QueryBuilder<CompletedTask> = try? CompletedTask
             .query(on: req.db)
         else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Failed to query completed tasks"))
+            throw Abort(.custom(code: 500, reasonPhrase: "INTERNALSERVERERROR:Failed to query completed tasks"))
         }
 
         guard let tasks: [CompletedTask] = try? await tasksQueryBuilder
             .preloadAssociationData(preload: preload) // Check if we need to preload all data
             .all()
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "No completed tasks found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "NOTFOUND:No completed tasks found"))
         }
 
         return latest ? tasks.reversed() : tasks
@@ -70,13 +70,13 @@ func initCompletedTasksRoute(_ app: Application) throws {
         }
 
         guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 400, reasonPhrase: "Provided ID is not in a valid UUID format"))
+            throw Abort(.custom(code: 400, reasonPhrase: "INVALIDID:Provided ID is not in a valid UUID format"))
         }
 
         guard let taskQueryBuilder: QueryBuilder<CompletedTask> = try? CompletedTask
             .query(on: req.db)
         else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Failed to query completed tasks"))
+            throw Abort(.custom(code: 500, reasonPhrase: "INTERNALSERVERERROR:Failed to query completed tasks"))
         }
 
         guard let task: CompletedTask = try? await taskQueryBuilder
@@ -84,7 +84,7 @@ func initCompletedTasksRoute(_ app: Application) throws {
             .filter(\.$id == idparam)
             .first()
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Completed task not found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "NOTFOUND:Completed task not found"))
         }
 
         return task
@@ -103,18 +103,18 @@ func initCompletedTasksRoute(_ app: Application) throws {
     }
     completedTasksRoute.patch(":id", use: { (req: Request) async throws -> CompletedTask in
         guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 400, reasonPhrase: "Provided ID is not in a valid UUID format"))
+            throw Abort(.custom(code: 400, reasonPhrase: "INVALIDID:Provided ID is not in a valid UUID format"))
         }
         guard let task: CompletedTask = try? await CompletedTask
             .query(on: req.db)
             .filter(\.$id == idparam)
             .first()
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Requested completed task not found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "NOTFOUND:Requested completed task not found"))
         }
 
         guard let query: taskpatchquery = try? req.query.decode(taskpatchquery.self) else {
-            throw Abort(.custom(code: 400, reasonPhrase: "Request queries sent by user is invalid"))
+            throw Abort(.custom(code: 400, reasonPhrase: "INVALIDREQUESTQUERY:Request queries sent by user is invalid"))
         }
         // TODO: I don't like how manual this is so maybe needs some custom function to iterate over the content struct, but it's simple and it works
         if let unwrappedquery = query.name {
@@ -131,7 +131,7 @@ func initCompletedTasksRoute(_ app: Application) throws {
         }
 
         guard let taskupdated: () = try? await task.update(on: req.db) else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to update completed task in database"))
+            throw Abort(.custom(code: 500, reasonPhrase: "INTERNALSERVERERROR:Request valid but unable to update completed task in database"))
         }
 
         return task
@@ -144,17 +144,17 @@ func initCompletedTasksRoute(_ app: Application) throws {
     // Delete
     completedTasksRoute.delete(":id", use: { (req: Request) async throws -> CompletedTask in
         guard let idparam: UUID = try? req.parameters.get("id") else {
-            throw Abort(.custom(code: 400, reasonPhrase: "Provided ID is not in a valid UUID format"))
+            throw Abort(.custom(code: 400, reasonPhrase: "INVALIDID:Provided ID is not in a valid UUID format"))
         }
         guard let task: CompletedTask = try? await CompletedTask
             .query(on: req.db)
             .filter(\.$id == idparam)
             .first()
         else {
-            throw Abort(.custom(code: 200, reasonPhrase: "Requested completed task not found"))
+            throw Abort(.custom(code: 200, reasonPhrase: "NOTFOUND:Requested completed task not found"))
         }
         guard let taskdeleted: () = try? await task.delete(on: req.db) else {
-            throw Abort(.custom(code: 500, reasonPhrase: "Request valid but unable to delete completed task in database"))
+            throw Abort(.custom(code: 500, reasonPhrase: "INTERNALSERVERERROR:Request valid but unable to delete completed task in database"))
         }
 
         return task
