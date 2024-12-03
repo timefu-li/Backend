@@ -41,17 +41,14 @@ func initCompletedTasksRoute(_ app: Application) throws {
         }
 
         guard let tasksQueryBuilder: QueryBuilder<CompletedTask> = try? CompletedTask
-                                                                        .query(on: req.db)
+            .query(on: req.db)
         else {
             throw Abort(.custom(code: 500, reasonPhrase: "Failed to query completed tasks"))
         }
-        guard let tasks: [CompletedTask] = preload ? try? await tasksQueryBuilder
-                                                                        .with(\.$task, { task in 
-                                                                            task.with(\.$category)
-                                                                        })
-                                                                        .all()
-                                                    : try? await tasksQueryBuilder
-                                                                        .all() 
+
+        guard let tasks: [CompletedTask] = try? await tasksQueryBuilder
+            .preloadAssociationData(preload: preload) // Check if we need to preload all data
+            .all()
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "No completed tasks found"))
         }
@@ -77,19 +74,15 @@ func initCompletedTasksRoute(_ app: Application) throws {
         }
 
         guard let taskQueryBuilder: QueryBuilder<CompletedTask> = try? CompletedTask
-                                                                        .query(on: req.db)
+            .query(on: req.db)
         else {
             throw Abort(.custom(code: 500, reasonPhrase: "Failed to query completed tasks"))
         }
-        guard let task: CompletedTask = preload ? try? await taskQueryBuilder
-                                                                        .with(\.$task, { task in 
-                                                                            task.with(\.$category)
-                                                                        })
-                                                                        .filter(\.$id == idparam)
-                                                                        .first()
-                                                    : try? await taskQueryBuilder
-                                                                        .filter(\.$id == idparam)
-                                                                        .first()
+
+        guard let task: CompletedTask = try? await taskQueryBuilder
+            .preloadAssociationData(preload: preload) // Check if we need to preload all data
+            .filter(\.$id == idparam)
+            .first()
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "Completed task not found"))
         }
@@ -113,9 +106,9 @@ func initCompletedTasksRoute(_ app: Application) throws {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
         guard let task: CompletedTask = try? await CompletedTask
-                                                    .query(on: req.db)
-                                                    .filter(\.$id == idparam)
-                                                    .first()
+            .query(on: req.db)
+            .filter(\.$id == idparam)
+            .first()
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "Requested completed task not found"))
         }
@@ -154,9 +147,9 @@ func initCompletedTasksRoute(_ app: Application) throws {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
         guard let task: CompletedTask = try? await CompletedTask
-                                                    .query(on: req.db)
-                                                    .filter(\.$id == idparam)
-                                                    .first()
+            .query(on: req.db)
+            .filter(\.$id == idparam)
+            .first()
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "Requested completed task not found"))
         }

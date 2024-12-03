@@ -36,15 +36,13 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         guard let tasksQueryBuilder: QueryBuilder<Task> = try? Task
-                                                                .query(on: req.db)
+            .query(on: req.db)
         else {
             throw Abort(.custom(code: 500, reasonPhrase: "Failed to query tasks"))
         }
-        guard let tasks: [Task] = preload ? try? await tasksQueryBuilder
-                                                                .with(\.$category)
-                                                                .all()
-                                           : try? await tasksQueryBuilder
-                                                                .all() 
+        guard let tasks: [Task] = try? await tasksQueryBuilder
+            .preloadAssociationData(preload: preload) // Check if we need to preload all data
+            .all()
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "No tasks found"))
         }
@@ -70,17 +68,14 @@ func initTasksRoutes(_ app: Application) throws {
         }
 
         guard let taskQueryBuilder: QueryBuilder<Task> = try? Task
-                                                                .query(on: req.db)
+            .query(on: req.db)
         else {
             throw Abort(.custom(code: 500, reasonPhrase: "Failed to query tasks"))
         }
-        guard let task: Task = preload ? try? await taskQueryBuilder
-                                                .with(\.$category)
-                                                .filter(\.$id == idparam)
-                                                .first()
-                                       : try? await taskQueryBuilder
-                                                .filter(\.$id == idparam)
-                                                .first()
+        guard let task: Task = try? await taskQueryBuilder
+            .preloadAssociationData(preload: preload) // Check if we need to preload all data
+            .filter(\.$id == idparam)
+            .first()
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "Task not found"))
         }
@@ -102,9 +97,9 @@ func initTasksRoutes(_ app: Application) throws {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
         guard let task: Task = try? await Task
-                                            .query(on: req.db)
-                                            .filter(\.$id == idparam)
-                                            .first()
+            .query(on: req.db)
+            .filter(\.$id == idparam)
+            .first()
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "Requested task not found"))
         }
@@ -137,9 +132,9 @@ func initTasksRoutes(_ app: Application) throws {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
         guard let task: Task = try? await Task
-                                            .query(on: req.db)
-                                            .filter(\.$id == idparam)
-                                            .first()
+            .query(on: req.db)
+            .filter(\.$id == idparam)
+            .first()
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "Requested task not found"))
         }

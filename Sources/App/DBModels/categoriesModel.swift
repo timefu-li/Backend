@@ -66,3 +66,17 @@ struct InitCategory: AsyncMigration {
         try await database.schema("tasks").delete()
     }
 }
+
+// Extensions ontop of QueryBuilder for Category to allow us to retrieve additional data etc. Like a middleware before a query is finalised.
+public extension QueryBuilder<Category> {
+
+    // Check to see if we need to preload all association data into query or not - By default we will
+    internal func preloadAssociationData(preload: Bool = true) -> Self {
+        if preload {
+            return self.with(\.$tasks)
+        } else {
+            return self
+        }
+    }
+
+}

@@ -36,15 +36,13 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         guard let categoriesQueryBuilder: QueryBuilder<Category> = try? Category
-                                                                        .query(on: req.db)
+            .query(on: req.db)
         else {
             throw Abort(.custom(code: 500, reasonPhrase: "Failed to query categories"))
         }
-        guard let categories: [Category] = preload ? try? await categoriesQueryBuilder
-                                                                        .with(\.$tasks)
-                                                                        .all()
-                                                    : try? await categoriesQueryBuilder
-                                                                        .all() 
+        guard let categories: [Category] = try? await categoriesQueryBuilder
+            .preloadAssociationData(preload: preload) // Check if we need to preload all data
+            .all()
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "No categories found"))
         }
@@ -70,17 +68,14 @@ func initCategoriesRoute(_ app: Application) throws {
         }
 
         guard let categoriesQueryBuilder: QueryBuilder<Category> = try? Category
-                                                                        .query(on: req.db) 
+            .query(on: req.db) 
         else {
             throw Abort(.custom(code: 500, reasonPhrase: "Failed to query categories"))
         }
-        guard let category: Category = preload ? try? await categoriesQueryBuilder
-                                                            .with(\.$tasks)
-                                                            .filter(\.$id == idparam)
-                                                            .first()
-                                                : try? await categoriesQueryBuilder
-                                                            .filter(\.$id == idparam)
-                                                            .first() 
+        guard let category: Category = try? await categoriesQueryBuilder
+            .preloadAssociationData(preload: preload) // Check if we need to preload all data
+            .filter(\.$id == idparam)
+            .first()
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "No categories found"))
         }
@@ -103,9 +98,9 @@ func initCategoriesRoute(_ app: Application) throws {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
         guard let category: Category = try? await Category
-                                                    .query(on: req.db)
-                                                    .filter(\.$id == idparam)
-                                                    .first() 
+            .query(on: req.db)
+            .filter(\.$id == idparam)
+            .first() 
         else {
             throw Abort(.custom(code: 200, reasonPhrase: "Requested category not found"))
         }
@@ -141,9 +136,10 @@ func initCategoriesRoute(_ app: Application) throws {
             throw Abort(.custom(code: 422, reasonPhrase: "Provided ID is not in a valid UUID format"))
         }
         guard let category: Category = try? await Category
-                                                    .query(on: req.db)
-                                                    .filter(\.$id == idparam)
-                                                    .first() else {
+            .query(on: req.db)
+            .filter(\.$id == idparam)
+            .first()
+        else {
             throw Abort(.custom(code: 200, reasonPhrase: "Requested category not found"))
         }
         guard let categorydeleted: () = try? await category.delete(on: req.db) else {
