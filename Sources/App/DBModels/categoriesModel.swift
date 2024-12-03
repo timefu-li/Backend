@@ -21,8 +21,8 @@ final class Category: Model, Content {
     var name: String
 
     // The Task's emoji.
-    @Field(key: "emoji")
-    var emoji: String
+    @OptionalField(key: "emoji")
+    var emoji: String?
 
     // The Task's colour.
     @Field(key: "colour")
@@ -36,7 +36,7 @@ final class Category: Model, Content {
     init() { }
 
     // Creates a new Task with all properties set.
-    init(id: UUID? = nil, name: String, emoji: String, colour: ColourRGB) {
+    init(id: UUID? = nil, name: String, emoji: String? = nil, colour: ColourRGB) {
         self.id = id
         self.name = name
         self.emoji = emoji

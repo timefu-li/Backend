@@ -40,6 +40,7 @@ func initTasksRoutes(_ app: Application) throws {
         else {
             throw Abort(.custom(code: 500, reasonPhrase: "Failed to query tasks"))
         }
+
         guard let tasks: [Task] = try? await tasksQueryBuilder
             .preloadAssociationData(preload: preload) // Check if we need to preload all data
             .all()
@@ -72,6 +73,7 @@ func initTasksRoutes(_ app: Application) throws {
         else {
             throw Abort(.custom(code: 500, reasonPhrase: "Failed to query tasks"))
         }
+
         guard let task: Task = try? await taskQueryBuilder
             .preloadAssociationData(preload: preload) // Check if we need to preload all data
             .filter(\.$id == idparam)

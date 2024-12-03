@@ -40,6 +40,7 @@ func initCategoriesRoute(_ app: Application) throws {
         else {
             throw Abort(.custom(code: 500, reasonPhrase: "Failed to query categories"))
         }
+
         guard let categories: [Category] = try? await categoriesQueryBuilder
             .preloadAssociationData(preload: preload) // Check if we need to preload all data
             .all()
@@ -72,6 +73,7 @@ func initCategoriesRoute(_ app: Application) throws {
         else {
             throw Abort(.custom(code: 500, reasonPhrase: "Failed to query categories"))
         }
+
         guard let category: Category = try? await categoriesQueryBuilder
             .preloadAssociationData(preload: preload) // Check if we need to preload all data
             .filter(\.$id == idparam)

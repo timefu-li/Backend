@@ -19,8 +19,8 @@ final class CompletedTask: Model, Content {
     var started: Date
 
     // The Task's date when it was completed.
-    @Field(key: "completed")
-    var completed: Date
+    @OptionalField(key: "completed")
+    var completed: Date?
 
     // Reference to the task this Completed Task belongs to
     @Parent(key: "task_id")
@@ -30,7 +30,7 @@ final class CompletedTask: Model, Content {
     init() { }
 
     // Creates a new Task with all properties set.
-    init(id: UUID? = nil, name: String, started: Date, completed: Date, taskID: UUID) {
+    init(id: UUID? = nil, name: String, started: Date, completed: Date? = nil, taskID: UUID) {
         self.name = name
         self.started = started
         self.completed = completed
