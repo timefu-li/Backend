@@ -57,7 +57,7 @@ struct InitCompletedTask: AsyncMigration {
 
         // Seed Database
         if let task_id: UUID = try await Task.query(on: database).first()?.id {
-            let seed: CompletedTask = CompletedTask(name: "Completed Test Task", started: Date(), completed: Date() + TimeInterval(60*60*24), taskID: task_id)
+            let seed: CompletedTask = CompletedTask(name: "Completed Test Task", started: Date.now, taskID: task_id)
             try await seed.create(on: database)
         } else {
             throw InitCompletedTaskSeedingError.categoryMissing

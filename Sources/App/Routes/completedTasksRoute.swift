@@ -97,8 +97,11 @@ func initCompletedTasksRoute(_ app: Application) throws {
     // Update
     struct taskpatchquery: Content {
         let name: String?
-        let started: Date?
-        let completed: Date?
+
+        // I'll just handle dates as strings in the query
+        let started: String?
+        let completed: String?
+
         let task: UUID?
     }
     completedTasksRoute.patch(":id", use: { (req: Request) async throws -> CompletedTask in
@@ -121,10 +124,12 @@ func initCompletedTasksRoute(_ app: Application) throws {
             task.name = unwrappedquery
         }
         if let unwrappedquery = query.started {
-            task.started = unwrappedquery
+            // Convert query string to date
+            task.started = ISO8601DateFormatter().date(from: unwrappedquery) ?? Date()
         }
         if let unwrappedquery = query.completed {
-            task.completed = unwrappedquery
+            // Convert query string to date
+            task.completed = ISO8601DateFormatter().date(from: unwrappedquery) ?? Date()
         }
         if let unwrappedquery = query.task {
             task.$task.id = unwrappedquery
