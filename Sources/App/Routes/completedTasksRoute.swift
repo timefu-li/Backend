@@ -8,7 +8,13 @@ func initCompletedTasksRoute(_ app: Application) throws {
 
     // Create
     completedTasksRoute.post(use: { (req: Request) async throws -> CompletedTask in
-        guard let completedtaskmodel: CompletedTask = try? req.content.decode(CompletedTask.self) else {
+        // Custom decoder to handle dates properly
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        print(req.content)
+
+        guard let completedtaskmodel: CompletedTask = try? req.content.decode(CompletedTask.self, using: decoder) else {
             throw Abort(.custom(code: 400, reasonPhrase: "INVALIDREQUESTBODY:Request body sent by user is invalid"))
         }
         guard let completedtaskcreated: () = try? await completedtaskmodel.create(on: req.db) else {
