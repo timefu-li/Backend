@@ -144,8 +144,14 @@ func initTasksRoutes(_ app: Application) throws {
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 400, reasonPhrase: "INVALIDID:Provided ID is not in a valid UUID format"))
         }
-        guard let task: Task = try? await Task
+        guard let taskQueryBuilder: QueryBuilder<Task> = try? Task
             .query(on: req.db)
+        else {
+            throw Abort(.custom(code: 500, reasonPhrase: "INTERNALSERVERERROR:Failed to query tasks"))
+        }
+        guard let task: Task = try? await taskQueryBuilder
+            .preloadAssociationCategory(preload: true)
+            .preloadAssociationCompletedTasks(preload: true)
             .filter(\.$id == idparam)
             .first()
         else {

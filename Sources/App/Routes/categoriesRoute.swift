@@ -137,8 +137,15 @@ func initCategoriesRoute(_ app: Application) throws {
         guard let idparam: UUID = try? req.parameters.get("id") else {
             throw Abort(.custom(code: 400, reasonPhrase: "INVALIDID:Provided ID is not in a valid UUID format"))
         }
-        guard let category: Category = try? await Category
+
+        guard let categoriesQueryBuilder: QueryBuilder<Category> = try? Category
             .query(on: req.db)
+        else {
+            throw Abort(.custom(code: 500, reasonPhrase: "INTERNALSERVERERROR:Failed to query categories"))
+        }
+
+        guard let category: Category = try? await categoriesQueryBuilder
+            .preloadAssociationData(preload: true)
             .filter(\.$id == idparam)
             .first()
         else {
